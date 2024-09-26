@@ -5,13 +5,19 @@ import java.awt.*;
 import java.awt.event.*;
 
 class GraphPanel extends JPanel {
-    private Graph graph;
+    private final Graph graph;
     private Node firstSelectedNode;
     private Node secondSelectedNode;
+    private JPopupMenu nodeMenu;
+    private JPopupMenu edgeMenu;
+    private Node clickedNode;
+    private Edge clickedEdge;
 
     public GraphPanel(Graph graph) {
         this.graph = graph;
         setTransferHandler(new ValueImportTransferHandler(graph, this));
+        initializeNodeMenu();
+        initializeEdgeMenu();
         addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -23,17 +29,82 @@ class GraphPanel extends JPanel {
                         } else if (secondSelectedNode == null) {
                             secondSelectedNode = clickedNode;
                         }
-                    } else {
-                        String nodeName = JOptionPane.showInputDialog("Enter node name:");
-                        if (nodeName != null) {
-                            graph.addNode(e.getX(), e.getY(), nodeName);
-                            System.out.println("Node added at (" + e.getX() + ", " + e.getY() + ")");
-                        }
                     }
                     repaint();
+                } else if (SwingUtilities.isRightMouseButton(e)) {
+                    clickedNode = getNodeAt(e.getX(), e.getY());
+                    clickedEdge = getEdgeAt(e.getX(), e.getY());
+                    if (clickedNode != null) {
+                        nodeMenu.show(e.getComponent(), e.getX(), e.getY());
+                    } else if (clickedEdge != null) {
+                        edgeMenu.show(e.getComponent(), e.getX(), e.getY());
+                    }
                 }
             }
         });
+    }
+
+    private void initializeNodeMenu() {
+        nodeMenu = new JPopupMenu();
+        JMenuItem renameItem = new JMenuItem("Rename");
+        JMenuItem deleteItem = new JMenuItem("Delete");
+
+        renameItem.addActionListener(e -> renameNode());
+        deleteItem.addActionListener(e -> deleteNode());
+
+        nodeMenu.add(renameItem);
+        nodeMenu.add(deleteItem);
+    }
+
+    private void initializeEdgeMenu() {
+        edgeMenu = new JPopupMenu();
+        JMenuItem changeWeightItem = new JMenuItem("Change Weight");
+        JMenuItem deleteItem = new JMenuItem("Delete");
+
+        changeWeightItem.addActionListener(e -> changeEdgeWeight());
+        deleteItem.addActionListener(e -> deleteEdge());
+
+        edgeMenu.add(changeWeightItem);
+        edgeMenu.add(deleteItem);
+    }
+
+    private void renameNode() {
+        if (clickedNode != null) {
+            String newName = JOptionPane.showInputDialog("Enter new name:");
+            if (newName != null && !newName.trim().isEmpty()) {
+                clickedNode.name = newName;
+                repaint();
+            }
+        }
+    }
+
+    private void deleteNode() {
+        if (clickedNode != null) {
+            graph.removeNode(clickedNode);
+            repaint();
+        }
+    }
+
+    private void changeEdgeWeight() {
+        if (clickedEdge != null) {
+            String weightStr = JOptionPane.showInputDialog("Enter new weight:");
+            if (weightStr != null) {
+                try {
+                    int newWeight = Integer.parseInt(weightStr);
+                    clickedEdge.weight = newWeight;
+                    repaint();
+                } catch (NumberFormatException e) {
+                    JOptionPane.showMessageDialog(this, "Invalid weight.");
+                }
+            }
+        }
+    }
+
+    private void deleteEdge() {
+        if (clickedEdge != null) {
+            graph.removeEdge(clickedEdge);
+            repaint();
+        }
     }
 
     public void createEdge(boolean isDirected, boolean isWeighted) {
@@ -45,7 +116,7 @@ class GraphPanel extends JPanel {
                     try {
                         weight = Integer.parseInt(weightStr);
                     } catch (NumberFormatException e) {
-                        JOptionPane.showMessageDialog(this, "Invalid weight. Defaulting to 1.");
+                        JOptionPane.showMessageDialog(this, "Invalid weight. Using default weight 1.");
                     }
                 }
             }
@@ -70,6 +141,54 @@ class GraphPanel extends JPanel {
         }
         return null;
     }
+
+    private Edge getEdgeAt(int x, int y) {
+        System.out.println("getEdgeAt");
+    for (Edge edge : graph.getEdges()) {
+        int x1 = edge.from.x;
+        int y1 = edge.from.y;
+        int x2 = edge.to.x;
+        int y2 = edge.to.y;
+
+        // Calculate the distance from the point (x, y) to the line segment (x1, y1) - (x2, y2)
+        double distance = pointToLineDistance(x, y, x1, y1, x2, y2);
+        if (distance < 10) { // Adjust the threshold as needed
+            return edge;
+        }
+    }
+    return null;
+}
+
+private double pointToLineDistance(int x, int y, int x1, int y1, int x2, int y2) {
+    double A = x - x1;
+    double B = y - y1;
+    double C = x2 - x1;
+    double D = y2 - y1;
+
+    double dot = A * C + B * D;
+    double len_sq = C * C + D * D;
+    double param = -1;
+    if (len_sq != 0) { // in case of 0 length line
+        param = dot / len_sq;
+    }
+
+    double xx, yy;
+
+    if (param < 0) {
+        xx = x1;
+        yy = y1;
+    } else if (param > 1) {
+        xx = x2;
+        yy = y2;
+    } else {
+        xx = x1 + param * C;
+        yy = y1 + param * D;
+    }
+
+    double dx = x - xx;
+    double dy = y - yy;
+    return Math.sqrt(dx * dx + dy * dy);
+}
 
     @Override
     protected void paintComponent(Graphics g) {
@@ -129,6 +248,8 @@ class GraphPanel extends JPanel {
         int[] ypoints = {y2, (int) ym, (int) yn};
         g.fillPolygon(xpoints, ypoints, 3);
 
+        // Draw the main line of the arrow
+        g.drawLine(x1, y1, x2, y2);
     }
 }
 
