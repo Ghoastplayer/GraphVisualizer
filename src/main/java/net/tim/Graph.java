@@ -24,6 +24,14 @@ class Graph {
         edges.add(new Edge(from, to, true));
     }
 
+    public void addWeightedEdge(Node from, Node to, int weight) {
+        edges.add(new Edge(from, to, false, weight));
+    }
+
+    public void addWeightedDirectedEdge(Node from, Node to, int weight) {
+        edges.add(new Edge(from, to, true, weight));
+    }
+
     public void removeNode(Node node) {
         nodes.remove(node);
         edges.removeIf(edge -> edge.from == node || edge.to == node);
@@ -59,12 +67,17 @@ class Edge {
     boolean isDirected;
 
     public Edge(Node from, Node to) {
-        this(from, to, false);
+        this(from, to, false, 1); // Default weight is 1
     }
 
     public Edge(Node from, Node to, boolean isDirected) {
+        this(from, to, isDirected, 1); // Default weight is 1
+    }
+
+    public Edge(Node from, Node to, boolean isDirected, int weight) {
         this.from = from;
         this.to = to;
         this.isDirected = isDirected;
+        this.weight = weight;
     }
 }

@@ -1,4 +1,3 @@
-// GraphVisualizer.java
 package net.tim;
 
 import javax.swing.*;
@@ -12,6 +11,7 @@ public class GraphVisualizer extends JFrame {
     private Graph graph;
     private GraphPanel graphPanel;
     private boolean isDirected = false; // Default to undirected
+    private boolean isWeighted = false; // Default to unweighted
 
     public GraphVisualizer() {
         graph = new Graph();
@@ -26,8 +26,9 @@ public class GraphVisualizer extends JFrame {
         JPanel controlPanel = new JPanel();
         JButton addEdgeButton = new JButton("Kante Hinzufügen");
         JToggleButton toggleDirectedButton = new JToggleButton("Gerichtet");
+        JCheckBox weightedCheckBox = new JCheckBox("Gewichtet");
 
-        addEdgeButton.addActionListener(e -> graphPanel.createEdge(isDirected));
+        addEdgeButton.addActionListener(e -> graphPanel.createEdge(isDirected, isWeighted));
 
         toggleDirectedButton.addItemListener(new ItemListener() {
             @Override
@@ -37,12 +38,20 @@ public class GraphVisualizer extends JFrame {
             }
         });
 
+        weightedCheckBox.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+                isWeighted = weightedCheckBox.isSelected();
+            }
+        });
+
         // Ensure the initial state is set correctly
         toggleDirectedButton.setSelected(isDirected);
         toggleDirectedButton.setText(isDirected ? "Gerichtet" : "Ungerichtet");
 
         controlPanel.add(addEdgeButton);
         controlPanel.add(toggleDirectedButton);
+        controlPanel.add(weightedCheckBox);
         add(controlPanel, BorderLayout.NORTH);
 
         // Toolbar on the right for dragging nodes

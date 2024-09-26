@@ -36,12 +36,23 @@ class GraphPanel extends JPanel {
         });
     }
 
-    public void createEdge(boolean isDirected) {
+    public void createEdge(boolean isDirected, boolean isWeighted) {
         if (firstSelectedNode != null && secondSelectedNode != null) {
+            int weight = 1;
+            if (isWeighted) {
+                String weightStr = JOptionPane.showInputDialog("Enter edge weight:");
+                if (weightStr != null) {
+                    try {
+                        weight = Integer.parseInt(weightStr);
+                    } catch (NumberFormatException e) {
+                        JOptionPane.showMessageDialog(this, "Invalid weight. Defaulting to 1.");
+                    }
+                }
+            }
             if (isDirected) {
-                graph.addDirectedEdge(firstSelectedNode, secondSelectedNode);
+                graph.addWeightedDirectedEdge(firstSelectedNode, secondSelectedNode, weight);
             } else {
-                graph.addEdge(firstSelectedNode, secondSelectedNode);
+                graph.addWeightedEdge(firstSelectedNode, secondSelectedNode, weight);
             }
             firstSelectedNode = null;
             secondSelectedNode = null;
@@ -67,6 +78,11 @@ class GraphPanel extends JPanel {
             g.drawLine(edge.from.x, edge.from.y, edge.to.x, edge.to.y);
             if (edge.isDirected) {
                 drawArrow(g, edge.from.x, edge.from.y, edge.to.x, edge.to.y);
+            }
+            if (edge.weight != 1) { // Only display weight if it's not the default value
+                g.setColor(Color.BLUE);
+                g.setFont(new Font("Arial", Font.BOLD, 14));
+                g.drawString(String.valueOf(edge.weight), (edge.from.x + edge.to.x) / 2, (edge.from.y + edge.to.y) / 2);
             }
         }
         for (Node node : graph.getNodes()) {
@@ -113,11 +129,7 @@ class GraphPanel extends JPanel {
         int[] ypoints = {y2, (int) ym, (int) yn};
         g.fillPolygon(xpoints, ypoints, 3);
 
-        // Draw the main line of the arrow
-        g.drawLine(x1, y1, x2, y2);
     }
-
-
 }
 
 class ValueImportTransferHandler extends TransferHandler {
