@@ -1,6 +1,7 @@
 package net.tim.view;
 
 import net.tim.controller.GraphController;
+import net.tim.model.Edge;
 import net.tim.model.Graph;
 import net.tim.model.Node;
 import net.tim.transfer.ValueExportTransferHandler;
@@ -12,6 +13,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
+import java.util.Random;
 
 public class GraphVisualizer extends JFrame {
     private Graph graph;
@@ -22,8 +24,9 @@ public class GraphVisualizer extends JFrame {
 
     public GraphVisualizer() {
         graph = new Graph();
-        graphPanel = new GraphPanel(graph);
-        graphController = new GraphController(graph, graphPanel);
+        graphPanel = new GraphPanel(); // Initialize graphPanel without graphController
+        graphController = new GraphController(graph, graphPanel); // Initialize graphController
+        graphPanel.setGraphController(graphController); // Set the graphController in graphPanel
 
         setTitle("Graphen-Visualisierer");
         setSize(800, 600);
@@ -58,8 +61,10 @@ public class GraphVisualizer extends JFrame {
         JButton addEdgeButton = new JButton("Kante Hinzufügen");
         JToggleButton toggleDirectedButton = new JToggleButton("Gerichtet");
         JCheckBox weightedCheckBox = new JCheckBox("Gewichtet");
+        JButton undoButton = new JButton("Rückgängig");
 
         addEdgeButton.addActionListener(e -> graphPanel.createEdge(isDirected, isWeighted));
+        undoButton.addActionListener(e -> graphController.undo());
 
         toggleDirectedButton.addItemListener(e -> {
             isDirected = toggleDirectedButton.isSelected();
@@ -75,6 +80,7 @@ public class GraphVisualizer extends JFrame {
         controlPanel.add(addEdgeButton);
         controlPanel.add(toggleDirectedButton);
         controlPanel.add(weightedCheckBox);
+        controlPanel.add(undoButton);
 
         add(controlPanel, BorderLayout.NORTH);
 
@@ -101,17 +107,13 @@ public class GraphVisualizer extends JFrame {
     private void saveGraph() {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setFileFilter(new FileNameExtensionFilter("Graph files", "graph"));
-        int option = fileChooser.showSaveDialog(this);
-        if (option == JFileChooser.APPROVE_OPTION) {
+        int returnValue = fileChooser.showSaveDialog(this);
+        if (returnValue == JFileChooser.APPROVE_OPTION) {
             File file = fileChooser.getSelectedFile();
-            if (!file.getName().endsWith(".graph")) {
-                file = new File(file.getAbsolutePath() + ".graph");
-            }
             try {
                 graphController.saveGraph(file);
-                JOptionPane.showMessageDialog(this, "Graph saved successfully.");
-            } catch (IOException ex) {
-                JOptionPane.showMessageDialog(this, "Error saving graph: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
     }
@@ -119,14 +121,13 @@ public class GraphVisualizer extends JFrame {
     private void loadGraph() {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setFileFilter(new FileNameExtensionFilter("Graph files", "graph"));
-        int option = fileChooser.showOpenDialog(this);
-        if (option == JFileChooser.APPROVE_OPTION) {
+        int returnValue = fileChooser.showOpenDialog(this);
+        if (returnValue == JFileChooser.APPROVE_OPTION) {
             File file = fileChooser.getSelectedFile();
             try {
                 graphController.loadGraph(file);
-                JOptionPane.showMessageDialog(this, "Graph loaded successfully.");
-            } catch (IOException ex) {
-                JOptionPane.showMessageDialog(this, "Error loading graph: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
     }

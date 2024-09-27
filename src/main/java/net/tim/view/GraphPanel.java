@@ -1,66 +1,80 @@
 package net.tim.view;
 
-import net.tim.model.Edge;
 import net.tim.controller.GraphController;
+import net.tim.model.Edge;
 import net.tim.model.Graph;
 import net.tim.model.Node;
 import net.tim.transfer.ValueImportTransferHandler;
-
-
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 
 public class GraphPanel extends JPanel {
-    private final Graph graph;
-    private Node firstSelectedNode;
-    private Node secondSelectedNode;
-    private JPopupMenu nodeMenu;
-    private JPopupMenu edgeMenu;
-    private Node clickedNode;
-    private Edge clickedEdge;
-    private Node draggedNode;
 
-    public GraphPanel(Graph graph) {
-        this.graph = graph;
-        setTransferHandler(new ValueImportTransferHandler(graph, this));
-        initializeNodeMenu();
-        initializeEdgeMenu();
+    private GraphController graphController;
+    private Node firstSelectedNode, secondSelectedNode, clickedNode, draggedNode;
+    private Edge clickedEdge;
+    private JPopupMenu nodeMenu, edgeMenu;
+
+    public GraphPanel() {
+        initializeMenus();
+        addMouseListeners();
+    }
+
+    private void initializeMenus() {
+        nodeMenu = createNodeMenu();
+        edgeMenu = createEdgeMenu();
+    }
+
+    private JPopupMenu createNodeMenu() {
+        JPopupMenu menu = new JPopupMenu();
+        menu.add(createMenuItem("Rename", e -> renameNode()));
+        menu.add(createMenuItem("Delete", e -> deleteNode()));
+        menu.add(createMenuItem("Set Color", e -> setNodeColor()));
+        return menu;
+    }
+
+    private JPopupMenu createEdgeMenu() {
+        JPopupMenu menu = new JPopupMenu();
+        menu.add(createMenuItem("Change Weight", e -> changeEdgeWeight()));
+        menu.add(createMenuItem("Delete", e -> deleteEdge()));
+        menu.add(createMenuItem("Set Color", e -> setEdgeColor()));
+        return menu;
+    }
+
+    private JMenuItem createMenuItem(String title, ActionListener action) {
+        JMenuItem item = new JMenuItem(title);
+        item.addActionListener(action);
+        return item;
+    }
+
+    private void addMouseListeners() {
         addMouseListener(new MouseAdapter() {
+            private int oldX, oldY;
+
             @Override
             public void mouseClicked(MouseEvent e) {
-                if (SwingUtilities.isLeftMouseButton(e)) {
-                    Node clickedNode = getNodeAt(e.getX(), e.getY());
-                    if (clickedNode != null) {
-                        if (firstSelectedNode == null) {
-                            firstSelectedNode = clickedNode;
-                        } else if (secondSelectedNode == null) {
-                            secondSelectedNode = clickedNode;
-                        }
-                    }
-                    repaint();
-                } else if (SwingUtilities.isRightMouseButton(e)) {
-                    clickedNode = getNodeAt(e.getX(), e.getY());
-                    clickedEdge = getEdgeAt(e.getX(), e.getY());
-                    if (clickedNode != null) {
-                        nodeMenu.show(e.getComponent(), e.getX(), e.getY());
-                    } else if (clickedEdge != null) {
-                        edgeMenu.show(e.getComponent(), e.getX(), e.getY());
-                    }
-                }
+                handleMouseClick(e);
             }
 
             @Override
             public void mousePressed(MouseEvent e) {
                 if (SwingUtilities.isLeftMouseButton(e)) {
                     draggedNode = getNodeAt(e.getX(), e.getY());
+                    if (draggedNode != null) {
+                        oldX = draggedNode.x;
+                        oldY = draggedNode.y;
+                    }
                 }
             }
 
             @Override
             public void mouseReleased(MouseEvent e) {
-                draggedNode = null;
+                if (draggedNode != null) {
+                    graphController.moveNode(draggedNode, draggedNode.x, draggedNode.y, oldX, oldY);
+                    draggedNode = null;
+                }
             }
         });
 
@@ -68,48 +82,59 @@ public class GraphPanel extends JPanel {
             @Override
             public void mouseDragged(MouseEvent e) {
                 if (draggedNode != null) {
-                    int newX = e.getX();
-                    int newY = e.getY();
-                    // Ensure the node stays within the panel bounds
-                    newX = Math.max(0, Math.min(newX, getWidth()));
-                    newY = Math.max(0, Math.min(newY, getHeight()));
-                    draggedNode.x = newX;
-                    draggedNode.y = newY;
+                    draggedNode.x = Math.max(0, Math.min(e.getX(), getWidth()));
+                    draggedNode.y = Math.max(0, Math.min(e.getY(), getHeight()));
                     repaint();
                 }
             }
         });
     }
 
-    private void initializeNodeMenu() {
-        nodeMenu = new JPopupMenu();
-        JMenuItem renameItem = new JMenuItem("Rename");
-        JMenuItem deleteItem = new JMenuItem("Delete");
-
-        renameItem.addActionListener(e -> renameNode());
-        deleteItem.addActionListener(e -> deleteNode());
-
-        nodeMenu.add(renameItem);
-        nodeMenu.add(deleteItem);
+    private void handleMouseClick(MouseEvent e) {
+        if (SwingUtilities.isLeftMouseButton(e)) {
+            Node clickedNode = getNodeAt(e.getX(), e.getY());
+            if (clickedNode != null) {
+                if (firstSelectedNode == null) {
+                    firstSelectedNode = clickedNode;
+                } else if (secondSelectedNode == null) {
+                    secondSelectedNode = clickedNode;
+                }
+            }
+            repaint();
+        } else if (SwingUtilities.isRightMouseButton(e)) {
+            clickedNode = getNodeAt(e.getX(), e.getY());
+            clickedEdge = getEdgeAt(e.getX(), e.getY());
+            if (clickedNode != null) {
+                nodeMenu.show(e.getComponent(), e.getX(), e.getY());
+            } else if (clickedEdge != null) {
+                edgeMenu.show(e.getComponent(), e.getX(), e.getY());
+            }
+        }
     }
 
-    private void initializeEdgeMenu() {
-        edgeMenu = new JPopupMenu();
-        JMenuItem changeWeightItem = new JMenuItem("Change Weight");
-        JMenuItem deleteItem = new JMenuItem("Delete");
+    private void setNodeColor() {
+        if (clickedNode != null) {
+            Color newColor = JColorChooser.showDialog(null, "Choose Node Color", clickedNode.color);
+            if (newColor != null) {
+                graphController.setNodeColor(clickedNode, newColor);
+            }
+        }
+    }
 
-        changeWeightItem.addActionListener(e -> changeEdgeWeight());
-        deleteItem.addActionListener(e -> deleteEdge());
-
-        edgeMenu.add(changeWeightItem);
-        edgeMenu.add(deleteItem);
+    private void setEdgeColor() {
+        if (clickedEdge != null) {
+            Color newColor = JColorChooser.showDialog(null, "Choose Edge Color", clickedEdge.color);
+            if (newColor != null) {
+                graphController.setEdgeColor(clickedEdge, newColor);
+            }
+        }
     }
 
     private void renameNode() {
         if (clickedNode != null) {
             String newName = JOptionPane.showInputDialog("Enter new name:");
             if (newName != null && !newName.trim().isEmpty()) {
-                clickedNode.name = newName;
+                graphController.renameNode(clickedNode, newName);
                 repaint();
             }
         }
@@ -117,7 +142,7 @@ public class GraphPanel extends JPanel {
 
     private void deleteNode() {
         if (clickedNode != null) {
-            graph.removeNode(clickedNode);
+            graphController.removeNode(clickedNode);
             repaint();
         }
     }
@@ -127,8 +152,7 @@ public class GraphPanel extends JPanel {
             String weightStr = JOptionPane.showInputDialog("Enter new weight:");
             if (weightStr != null) {
                 try {
-                    int newWeight = Integer.parseInt(weightStr);
-                    clickedEdge.weight = newWeight;
+                    graphController.setEdgeWeight(clickedEdge, Integer.parseInt(weightStr));
                     repaint();
                 } catch (NumberFormatException e) {
                     JOptionPane.showMessageDialog(this, "Invalid weight.");
@@ -139,7 +163,7 @@ public class GraphPanel extends JPanel {
 
     private void deleteEdge() {
         if (clickedEdge != null) {
-            graph.removeEdge(clickedEdge);
+            graphController.removeEdge(clickedEdge);
             repaint();
         }
     }
@@ -157,7 +181,6 @@ public class GraphPanel extends JPanel {
                     }
                 }
             }
-            GraphController graphController = new GraphController(graph, this);
             graphController.addEdge(firstSelectedNode, secondSelectedNode, isDirected, isWeighted, weight);
             firstSelectedNode = null;
             secondSelectedNode = null;
@@ -167,81 +190,52 @@ public class GraphPanel extends JPanel {
     }
 
     private Node getNodeAt(int x, int y) {
-        for (Node node : graph.getNodes()) {
-            if (Math.abs(node.x - x) < 10 && Math.abs(node.y - y) < 10) {
-                return node;
-            }
-        }
-        return null;
+        return graphController.getNodes().stream()
+                .filter(node -> Math.abs(node.x - x) < 10 && Math.abs(node.y - y) < 10)
+                .findFirst().orElse(null);
     }
 
     private Edge getEdgeAt(int x, int y) {
-        for (Edge edge : graph.getEdges()) {
-            int x1 = edge.from.x;
-            int y1 = edge.from.y;
-            int x2 = edge.to.x;
-            int y2 = edge.to.y;
-
-            // Calculate the distance from the point (x, y) to the line segment (x1, y1) - (x2, y2)
-            double distance = pointToLineDistance(x, y, x1, y1, x2, y2);
-            if (distance < 10) { // Adjust the threshold as needed
-                return edge;
-            }
-        }
-        return null;
+        return graphController.getEdges().stream()
+                .filter(edge -> pointToLineDistance(x, y, edge.from.x, edge.from.y, edge.to.x, edge.to.y) < 10)
+                .findFirst().orElse(null);
     }
 
     private double pointToLineDistance(int x, int y, int x1, int y1, int x2, int y2) {
-        double A = x - x1;
-        double B = y - y1;
-        double C = x2 - x1;
-        double D = y2 - y1;
-
-        double dot = A * C + B * D;
-        double len_sq = C * C + D * D;
-        double param = -1;
-        if (len_sq != 0) { // in case of 0 length line
-            param = dot / len_sq;
-        }
-
-        double xx, yy;
-
-        if (param < 0) {
-            xx = x1;
-            yy = y1;
-        } else if (param > 1) {
-            xx = x2;
-            yy = y2;
-        } else {
-            xx = x1 + param * C;
-            yy = y1 + param * D;
-        }
-
-        double dx = x - xx;
-        double dy = y - yy;
-        return Math.sqrt(dx * dx + dy * dy);
+        double A = x - x1, B = y - y1, C = x2 - x1, D = y2 - y1;
+        double dot = A * C + B * D, len_sq = C * C + D * D, param = len_sq != 0 ? dot / len_sq : -1;
+        double xx = param < 0 ? x1 : param > 1 ? x2 : x1 + param * C;
+        double yy = param < 0 ? y1 : param > 1 ? y2 : y1 + param * D;
+        return Math.sqrt((x - xx) * (x - xx) + (y - yy) * (y - yy));
     }
 
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        for (Edge edge : graph.getEdges()) {
-            g.drawLine(edge.from.x, edge.from.y, edge.to.x, edge.to.y);
-            if (edge.isDirected) {
-                drawArrow(g, edge.from.x, edge.from.y, edge.to.x, edge.to.y);
-            }
-            if (edge.weight != 1) { // Only display weight if it's not the default value
-                g.setColor(Color.BLUE);
-                g.setFont(new Font("Arial", Font.BOLD, 14));
-                g.drawString(String.valueOf(edge.weight), (edge.from.x + edge.to.x) / 2, (edge.from.y + edge.to.y) / 2);
-            }
+        graphController.getEdges().forEach(edge -> drawEdge(g, edge));
+        graphController.getNodes().forEach(node -> drawNode(g, node));
+        highlightSelectedNodes(g);
+    }
+
+    private void drawEdge(Graphics g, Edge edge) {
+        g.setColor(edge.color);
+        g.drawLine(edge.from.x, edge.from.y, edge.to.x, edge.to.y);
+        if (edge.isDirected) drawArrow(g, edge.from.x, edge.from.y, edge.to.x, edge.to.y);
+        if (edge.weight != 1) {
+            g.setColor(Color.BLUE);
+            g.setFont(new Font("Arial", Font.BOLD, 14));
+            g.drawString(String.valueOf(edge.weight), (edge.from.x + edge.to.x) / 2, (edge.from.y + edge.to.y) / 2);
         }
-        for (Node node : graph.getNodes()) {
-            g.setColor(Color.RED);
-            g.fillOval(node.x - 10, node.y - 10, 20, 20);
-            g.setColor(Color.BLACK);
-            g.drawString(node.name, node.x - 10, node.y - 15);
-        }
+    }
+
+    private void drawNode(Graphics g, Node node) {
+        g.setColor(node.color);
+        g.fillOval(node.x - 10, node.y - 10, 20, 20);
+        g.setColor(Color.BLACK);
+        g.drawString(node.name, node.x - 10, node.y - 15);
+    }
+
+    private void highlightSelectedNodes(Graphics g) {
         if (firstSelectedNode != null) {
             g.setColor(Color.BLUE);
             g.drawOval(firstSelectedNode.x - 15, firstSelectedNode.y - 15, 30, 30);
@@ -254,33 +248,23 @@ public class GraphPanel extends JPanel {
 
     private void drawArrow(Graphics g, int x1, int y1, int x2, int y2) {
         int dx = x2 - x1, dy = y2 - y1;
-        double D = Math.sqrt(dx * dx + dy * dy);
-        double arrowLength = 20; // Length of the arrowhead
-        double arrowWidth = 7;   // Width of the arrowhead
-        double xm = D - arrowLength, xn = xm, ym = arrowWidth, yn = -arrowWidth, x;
-        double sin = dy / D, cos = dx / D;
-        double nodeRadius = 9;
-
-        // Adjust the arrow position to stop at the node's edge (considering node radius)
-        D -= nodeRadius; // Subtract node radius to stop the arrow before the node's boundary
-        x2 = (int) (x1 + D * cos);
-        y2 = (int) (y1 + D * sin);
-
-        // Recalculate points for the arrowhead
+        double D = Math.sqrt(dx * dx + dy * dy), arrowLength = 20, arrowWidth = 7, nodeRadius = 9;
+        D -= nodeRadius;
+        x2 = (int) (x1 + D * (dx / D));
+        y2 = (int) (x1 + D * (dy / D));
+        double xm = D - arrowLength, xn = xm, ym = arrowWidth, yn = -arrowWidth, x, sin = dy / D, cos = dx / D;
         x = xm * cos - ym * sin + x1;
         ym = xm * sin + ym * cos + y1;
         xm = x;
-
         x = xn * cos - yn * sin + x1;
         yn = xn * sin + yn * cos + y1;
         xn = x;
-
-        // Draw the arrowhead
-        int[] xpoints = {x2, (int) xm, (int) xn};
-        int[] ypoints = {y2, (int) ym, (int) yn};
-        g.fillPolygon(xpoints, ypoints, 3);
-
-        // Draw the main line of the arrow
+        g.fillPolygon(new int[]{x2, (int) xm, (int) xn}, new int[]{y2, (int) ym, (int) yn}, 3);
         g.drawLine(x1, y1, x2, y2);
+    }
+
+    public void setGraphController(GraphController graphController) {
+        this.graphController = graphController;
+        setTransferHandler(new ValueImportTransferHandler(graphController, this));
     }
 }

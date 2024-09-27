@@ -19,6 +19,10 @@ public class Graph {
         nodes.add(new Node(x, y, name));
     }
 
+    public void addNode(Node node) {
+        nodes.add(node);
+    }
+
     public void addEdge(Node from, Node to) {
         edges.add(new Edge(from, to));
     }
@@ -36,8 +40,13 @@ public class Graph {
     }
 
     public void removeNode(Node node) {
-        nodes.remove(node);
-        edges.removeIf(edge -> edge.from == node || edge.to == node);
+        removeNode(node.x, node.y, node.name);
+    }
+
+    public void removeNode(int x, int y, String name) {
+        nodes.removeIf(node -> node.x == x && node.y == y && node.name.equals(name));
+        edges.removeIf(edge -> edge.from.x == x && edge.from.y == y && edge.from.name.equals(name) ||
+                edge.to.x == x && edge.to.y == y && edge.to.name.equals(name));
     }
 
     public void removeEdge(Edge edge) {
