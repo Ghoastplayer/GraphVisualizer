@@ -3,16 +3,12 @@ package net.tim;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
-
-//TODO: Add a toolbar with buttons for saving, loading, and resetting the graph
-//TODO: Add a toolbar on the right for dragging nodes onto the graph and for creating edges
-//TODO: Add a Funktion to stop moving nodes out of the frame
 
 public class GraphVisualizer extends JFrame {
     private Graph graph;
@@ -29,28 +25,43 @@ public class GraphVisualizer extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
+        // Create the menu bar
+        JMenuBar menuBar = new JMenuBar();
+
+        // Create the File menu
+        JMenu fileMenu = new JMenu("File");
+        JMenuItem saveMenuItem = new JMenuItem("Save");
+        JMenuItem loadMenuItem = new JMenuItem("Load");
+        JMenuItem resetMenuItem = new JMenuItem("Reset");
+
+        saveMenuItem.addActionListener(e -> saveGraph());
+        loadMenuItem.addActionListener(e -> loadGraph());
+        resetMenuItem.addActionListener(e -> resetGraph());
+
+        fileMenu.add(saveMenuItem);
+        fileMenu.add(loadMenuItem);
+        fileMenu.add(resetMenuItem);
+
+        menuBar.add(fileMenu);
+
+        // Set the menu bar
+        setJMenuBar(menuBar);
+
         // Toolbar for actions (e.g., adding nodes/edges)
         JPanel controlPanel = new JPanel();
+        controlPanel.setBackground(Color.LIGHT_GRAY); // Set background color
         JButton addEdgeButton = new JButton("Kante Hinzufügen");
         JToggleButton toggleDirectedButton = new JToggleButton("Gerichtet");
         JCheckBox weightedCheckBox = new JCheckBox("Gewichtet");
 
         addEdgeButton.addActionListener(e -> graphPanel.createEdge(isDirected, isWeighted));
 
-        toggleDirectedButton.addItemListener(new ItemListener() {
-            @Override
-            public void itemStateChanged(ItemEvent e) {
-                isDirected = toggleDirectedButton.isSelected();
-                toggleDirectedButton.setText(isDirected ? "Gerichtet" : "Ungerichtet");
-            }
+        toggleDirectedButton.addItemListener(e -> {
+            isDirected = toggleDirectedButton.isSelected();
+            toggleDirectedButton.setText(isDirected ? "Gerichtet" : "Ungerichtet");
         });
 
-        weightedCheckBox.addItemListener(new ItemListener() {
-            @Override
-            public void itemStateChanged(ItemEvent e) {
-                isWeighted = weightedCheckBox.isSelected();
-            }
-        });
+        weightedCheckBox.addItemListener(e -> isWeighted = weightedCheckBox.isSelected());
 
         // Ensure the initial state is set correctly
         toggleDirectedButton.setSelected(isDirected);
@@ -60,23 +71,11 @@ public class GraphVisualizer extends JFrame {
         controlPanel.add(toggleDirectedButton);
         controlPanel.add(weightedCheckBox);
 
-        // Add Save, Load, and Reset buttons
-        JButton saveButton = new JButton("Save Graph");
-        JButton loadButton = new JButton("Load Graph");
-        JButton resetButton = new JButton("Reset Graph");
-
-        saveButton.addActionListener(e -> saveGraph());
-        loadButton.addActionListener(e -> loadGraph());
-        resetButton.addActionListener(e -> resetGraph());
-
-        controlPanel.add(saveButton);
-        controlPanel.add(loadButton);
-        controlPanel.add(resetButton);
-
         add(controlPanel, BorderLayout.NORTH);
 
         // Toolbar on the right for dragging nodes
         JPanel toolbar = new JPanel();
+        toolbar.setBackground(Color.LIGHT_GRAY); // Set background color
         toolbar.setLayout(new BoxLayout(toolbar, BoxLayout.Y_AXIS));
         JButton nodeButton = new JButton("Node");
         nodeButton.setTransferHandler(new ValueExportTransferHandler(new Node(0, 0, "Unnamed")));
