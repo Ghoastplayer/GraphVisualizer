@@ -12,6 +12,7 @@ class GraphPanel extends JPanel {
     private JPopupMenu edgeMenu;
     private Node clickedNode;
     private Edge clickedEdge;
+    private Node draggedNode;
 
     public GraphPanel(Graph graph) {
         this.graph = graph;
@@ -39,6 +40,34 @@ class GraphPanel extends JPanel {
                     } else if (clickedEdge != null) {
                         edgeMenu.show(e.getComponent(), e.getX(), e.getY());
                     }
+                }
+            }
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+                if (SwingUtilities.isLeftMouseButton(e)) {
+                    draggedNode = getNodeAt(e.getX(), e.getY());
+                }
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                draggedNode = null;
+            }
+        });
+
+        addMouseMotionListener(new MouseMotionAdapter() {
+            @Override
+            public void mouseDragged(MouseEvent e) {
+                if (draggedNode != null) {
+                    int newX = e.getX();
+                    int newY = e.getY();
+                    // Ensure the node stays within the panel bounds
+                    newX = Math.max(0, Math.min(newX, getWidth()));
+                    newY = Math.max(0, Math.min(newY, getHeight()));
+                    draggedNode.x = newX;
+                    draggedNode.y = newY;
+                    repaint();
                 }
             }
         });
@@ -144,51 +173,51 @@ class GraphPanel extends JPanel {
 
     private Edge getEdgeAt(int x, int y) {
         System.out.println("getEdgeAt");
-    for (Edge edge : graph.getEdges()) {
-        int x1 = edge.from.x;
-        int y1 = edge.from.y;
-        int x2 = edge.to.x;
-        int y2 = edge.to.y;
+        for (Edge edge : graph.getEdges()) {
+            int x1 = edge.from.x;
+            int y1 = edge.from.y;
+            int x2 = edge.to.x;
+            int y2 = edge.to.y;
 
-        // Calculate the distance from the point (x, y) to the line segment (x1, y1) - (x2, y2)
-        double distance = pointToLineDistance(x, y, x1, y1, x2, y2);
-        if (distance < 10) { // Adjust the threshold as needed
-            return edge;
+            // Calculate the distance from the point (x, y) to the line segment (x1, y1) - (x2, y2)
+            double distance = pointToLineDistance(x, y, x1, y1, x2, y2);
+            if (distance < 10) { // Adjust the threshold as needed
+                return edge;
+            }
         }
-    }
-    return null;
-}
-
-private double pointToLineDistance(int x, int y, int x1, int y1, int x2, int y2) {
-    double A = x - x1;
-    double B = y - y1;
-    double C = x2 - x1;
-    double D = y2 - y1;
-
-    double dot = A * C + B * D;
-    double len_sq = C * C + D * D;
-    double param = -1;
-    if (len_sq != 0) { // in case of 0 length line
-        param = dot / len_sq;
+        return null;
     }
 
-    double xx, yy;
+    private double pointToLineDistance(int x, int y, int x1, int y1, int x2, int y2) {
+        double A = x - x1;
+        double B = y - y1;
+        double C = x2 - x1;
+        double D = y2 - y1;
 
-    if (param < 0) {
-        xx = x1;
-        yy = y1;
-    } else if (param > 1) {
-        xx = x2;
-        yy = y2;
-    } else {
-        xx = x1 + param * C;
-        yy = y1 + param * D;
+        double dot = A * C + B * D;
+        double len_sq = C * C + D * D;
+        double param = -1;
+        if (len_sq != 0) { // in case of 0 length line
+            param = dot / len_sq;
+        }
+
+        double xx, yy;
+
+        if (param < 0) {
+            xx = x1;
+            yy = y1;
+        } else if (param > 1) {
+            xx = x2;
+            yy = y2;
+        } else {
+            xx = x1 + param * C;
+            yy = y1 + param * D;
+        }
+
+        double dx = x - xx;
+        double dy = y - yy;
+        return Math.sqrt(dx * dx + dy * dy);
     }
-
-    double dx = x - xx;
-    double dy = y - yy;
-    return Math.sqrt(dx * dx + dy * dy);
-}
 
     @Override
     protected void paintComponent(Graphics g) {
@@ -253,38 +282,3 @@ private double pointToLineDistance(int x, int y, int x1, int y1, int x2, int y2)
     }
 }
 
-class ValueImportTransferHandler extends TransferHandler {
-    private final Graph graph;
-    private final JPanel panel;
-
-    public ValueImportTransferHandler(Graph graph, JPanel panel) {
-        this.graph = graph;
-        this.panel = panel;
-    }
-
-    @Override
-    public boolean canImport(TransferHandler.TransferSupport support) {
-        return support.isDataFlavorSupported(NodeTransferable.NODE_FLAVOR);
-    }
-
-    @Override
-    public boolean importData(TransferHandler.TransferSupport support) {
-        if (!canImport(support)) {
-            return false;
-        }
-
-        try {
-            Node node = (Node) support.getTransferable().getTransferData(NodeTransferable.NODE_FLAVOR);
-            Point dropPoint = support.getDropLocation().getDropPoint();
-            String nodeName = JOptionPane.showInputDialog("Enter node name:");
-            if (nodeName != null) {
-                graph.addNode(dropPoint.x, dropPoint.y, nodeName);
-                panel.repaint();
-                return true;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-}
