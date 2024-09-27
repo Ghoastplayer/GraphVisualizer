@@ -1,4 +1,4 @@
-package net.tim;
+package net.tim.model;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-class Graph {
+public class Graph {
     private final List<Node> nodes;
     private final List<Edge> edges;
 
@@ -93,34 +93,5 @@ class Graph {
     }
 }
 
-class Node {
-    int x, y;
-    String name;
 
-    public Node(int x, int y, String name) {
-        this.x = x;
-        this.y = y;
-        this.name = name;
-    }
-}
 
-class Edge {
-    Node from, to;
-    int weight;
-    boolean isDirected;
-
-    public Edge(Node from, Node to) {
-        this(from, to, false, 1); // Default weight is 1
-    }
-
-    public Edge(Node from, Node to, boolean isDirected) {
-        this(from, to, isDirected, 1); // Default weight is 1
-    }
-
-    public Edge(Node from, Node to, boolean isDirected, int weight) {
-        this.from = from;
-        this.to = to;
-        this.isDirected = isDirected;
-        this.weight = weight;
-    }
-}

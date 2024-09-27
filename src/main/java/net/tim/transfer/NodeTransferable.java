@@ -1,28 +1,13 @@
-package net.tim;
+package net.tim.transfer;
 
-import javax.swing.*;
-import java.awt.datatransfer.*;
+import net.tim.model.Node;
+
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
 
-class ValueExportTransferHandler extends TransferHandler {
-    private final Node node;
-
-    public ValueExportTransferHandler(Node node) {
-        this.node = node;
-    }
-
-    @Override
-    protected Transferable createTransferable(JComponent c) {
-        return new NodeTransferable(node);
-    }
-
-    @Override
-    public int getSourceActions(JComponent c) {
-        return COPY;
-    }
-}
-
-class NodeTransferable implements Transferable {
+public class NodeTransferable implements Transferable {
     private final Node node;
     public static final DataFlavor NODE_FLAVOR = new DataFlavor(Node.class, "A Node Object");
 

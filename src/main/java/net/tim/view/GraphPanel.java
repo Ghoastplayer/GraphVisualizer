@@ -1,10 +1,18 @@
-package net.tim;
+package net.tim.view;
+
+import net.tim.model.Edge;
+import net.tim.controller.GraphController;
+import net.tim.model.Graph;
+import net.tim.model.Node;
+import net.tim.transfer.ValueImportTransferHandler;
+
+
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 
-class GraphPanel extends JPanel {
+public class GraphPanel extends JPanel {
     private final Graph graph;
     private Node firstSelectedNode;
     private Node secondSelectedNode;
@@ -149,14 +157,10 @@ class GraphPanel extends JPanel {
                     }
                 }
             }
-            if (isDirected) {
-                graph.addWeightedDirectedEdge(firstSelectedNode, secondSelectedNode, weight);
-            } else {
-                graph.addWeightedEdge(firstSelectedNode, secondSelectedNode, weight);
-            }
+            GraphController graphController = new GraphController(graph, this);
+            graphController.addEdge(firstSelectedNode, secondSelectedNode, isDirected, isWeighted, weight);
             firstSelectedNode = null;
             secondSelectedNode = null;
-            repaint();
         } else {
             JOptionPane.showMessageDialog(this, "Please select two nodes first.");
         }
@@ -172,7 +176,6 @@ class GraphPanel extends JPanel {
     }
 
     private Edge getEdgeAt(int x, int y) {
-        System.out.println("getEdgeAt");
         for (Edge edge : graph.getEdges()) {
             int x1 = edge.from.x;
             int y1 = edge.from.y;
@@ -281,4 +284,3 @@ class GraphPanel extends JPanel {
         g.drawLine(x1, y1, x2, y2);
     }
 }
-

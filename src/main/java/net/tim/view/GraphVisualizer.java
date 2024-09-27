@@ -1,10 +1,13 @@
-package net.tim;
+package net.tim.view;
+
+import net.tim.controller.GraphController;
+import net.tim.model.Graph;
+import net.tim.model.Node;
+import net.tim.transfer.ValueExportTransferHandler;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
@@ -13,12 +16,14 @@ import java.io.IOException;
 public class GraphVisualizer extends JFrame {
     private Graph graph;
     private GraphPanel graphPanel;
+    private GraphController graphController;
     private boolean isDirected = false; // Default to undirected
     private boolean isWeighted = false; // Default to unweighted
 
     public GraphVisualizer() {
         graph = new Graph();
         graphPanel = new GraphPanel(graph);
+        graphController = new GraphController(graph, graphPanel);
 
         setTitle("Graphen-Visualisierer");
         setSize(800, 600);
@@ -36,7 +41,7 @@ public class GraphVisualizer extends JFrame {
 
         saveMenuItem.addActionListener(e -> saveGraph());
         loadMenuItem.addActionListener(e -> loadGraph());
-        resetMenuItem.addActionListener(e -> resetGraph());
+        resetMenuItem.addActionListener(e -> graphController.resetGraph());
 
         fileMenu.add(saveMenuItem);
         fileMenu.add(loadMenuItem);
@@ -93,11 +98,6 @@ public class GraphVisualizer extends JFrame {
         add(graphPanel, BorderLayout.CENTER);
     }
 
-    private void resetGraph() {
-        graph.clear();
-        graphPanel.repaint();
-    }
-
     private void saveGraph() {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setFileFilter(new FileNameExtensionFilter("Graph files", "graph"));
@@ -108,10 +108,10 @@ public class GraphVisualizer extends JFrame {
                 file = new File(file.getAbsolutePath() + ".graph");
             }
             try {
-                graph.saveToFile(file);
+                graphController.saveGraph(file);
+                JOptionPane.showMessageDialog(this, "Graph saved successfully.");
             } catch (IOException ex) {
-                ex.printStackTrace();
-                JOptionPane.showMessageDialog(this, "Error saving graph: " + ex.getMessage());
+                JOptionPane.showMessageDialog(this, "Error saving graph: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
@@ -123,11 +123,10 @@ public class GraphVisualizer extends JFrame {
         if (option == JFileChooser.APPROVE_OPTION) {
             File file = fileChooser.getSelectedFile();
             try {
-                graph.loadFromFile(file);
-                graphPanel.repaint();
+                graphController.loadGraph(file);
+                JOptionPane.showMessageDialog(this, "Graph loaded successfully.");
             } catch (IOException ex) {
-                ex.printStackTrace();
-                JOptionPane.showMessageDialog(this, "Error loading graph: " + ex.getMessage());
+                JOptionPane.showMessageDialog(this, "Error loading graph: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
