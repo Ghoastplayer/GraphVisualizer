@@ -1,7 +1,10 @@
 package net.tim;
 
+import java.io.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 class Graph {
     private final List<Node> nodes;
@@ -47,6 +50,46 @@ class Graph {
 
     public List<Edge> getEdges() {
         return edges;
+    }
+
+    public void clear() {
+        nodes.clear();
+        edges.clear();
+    }
+
+    public void saveToFile(File file) throws IOException {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+            for (Node node : nodes) {
+                writer.write("NODE " + node.x + " " + node.y + " " + node.name);
+                writer.newLine();
+            }
+            for (Edge edge : edges) {
+                writer.write("EDGE " + edge.from.name + " " + edge.to.name + " " + edge.weight + " " + edge.isDirected);
+                writer.newLine();
+            }
+        }
+    }
+
+    public void loadFromFile(File file) throws IOException {
+        clear();
+        Map<String, Node> nodeMap = new HashMap<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(" ");
+                if (parts[0].equals("NODE")) {
+                    Node node = new Node(Integer.parseInt(parts[1]), Integer.parseInt(parts[2]), parts[3]);
+                    nodes.add(node);
+                    nodeMap.put(node.name, node);
+                } else if (parts[0].equals("EDGE")) {
+                    Node from = nodeMap.get(parts[1]);
+                    Node to = nodeMap.get(parts[2]);
+                    int weight = Integer.parseInt(parts[3]);
+                    boolean isDirected = Boolean.parseBoolean(parts[4]);
+                    edges.add(new Edge(from, to, isDirected, weight));
+                }
+            }
+        }
     }
 }
 

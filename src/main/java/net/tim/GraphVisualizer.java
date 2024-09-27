@@ -1,11 +1,20 @@
 package net.tim;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.FileReader;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.IOException;
 
 public class GraphVisualizer extends JFrame {
     private Graph graph;
@@ -52,6 +61,20 @@ public class GraphVisualizer extends JFrame {
         controlPanel.add(addEdgeButton);
         controlPanel.add(toggleDirectedButton);
         controlPanel.add(weightedCheckBox);
+
+        // Add Save, Load, and Reset buttons
+        JButton saveButton = new JButton("Save Graph");
+        JButton loadButton = new JButton("Load Graph");
+        JButton resetButton = new JButton("Reset Graph");
+
+        saveButton.addActionListener(e -> saveGraph());
+        loadButton.addActionListener(e -> loadGraph());
+        resetButton.addActionListener(e -> resetGraph());
+
+        controlPanel.add(saveButton);
+        controlPanel.add(loadButton);
+        controlPanel.add(resetButton);
+
         add(controlPanel, BorderLayout.NORTH);
 
         // Toolbar on the right for dragging nodes
@@ -71,6 +94,45 @@ public class GraphVisualizer extends JFrame {
         add(toolbar, BorderLayout.EAST);
 
         add(graphPanel, BorderLayout.CENTER);
+    }
+
+    private void resetGraph() {
+        graph.clear();
+        graphPanel.repaint();
+    }
+
+    private void saveGraph() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setFileFilter(new FileNameExtensionFilter("Graph files", "graph"));
+        int option = fileChooser.showSaveDialog(this);
+        if (option == JFileChooser.APPROVE_OPTION) {
+            File file = fileChooser.getSelectedFile();
+            if (!file.getName().endsWith(".graph")) {
+                file = new File(file.getAbsolutePath() + ".graph");
+            }
+            try {
+                graph.saveToFile(file);
+            } catch (IOException ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(this, "Error saving graph: " + ex.getMessage());
+            }
+        }
+    }
+
+    private void loadGraph() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setFileFilter(new FileNameExtensionFilter("Graph files", "graph"));
+        int option = fileChooser.showOpenDialog(this);
+        if (option == JFileChooser.APPROVE_OPTION) {
+            File file = fileChooser.getSelectedFile();
+            try {
+                graph.loadFromFile(file);
+                graphPanel.repaint();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(this, "Error loading graph: " + ex.getMessage());
+            }
+        }
     }
 
     public static void main(String[] args) {
