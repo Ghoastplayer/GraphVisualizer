@@ -1,6 +1,5 @@
 import net.tim.model.Graph;
 import net.tim.model.Node;
-import net.tim.model.Edge;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -56,5 +55,15 @@ public class GraphTest {
 
         // Clean up
         file.delete();
+    }
+
+    @Test
+    public void testNodeRemoval() {
+        Node node1 = new Node(100, 200, "Node1");
+        Node node2 = new Node(300, 400, "Node2");
+        graph.addNode(node1);
+        graph.addNode(node2);
+        graph.removeNode(node1);
+        assertEquals(1, graph.getNodes().size());
     }
 }

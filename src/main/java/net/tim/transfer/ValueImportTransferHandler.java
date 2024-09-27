@@ -1,5 +1,6 @@
 package net.tim.transfer;
 
+import net.tim.controller.GraphController;
 import net.tim.model.Graph;
 import net.tim.model.Node;
 
@@ -7,11 +8,11 @@ import javax.swing.*;
 import java.awt.*;
 
 public class ValueImportTransferHandler extends TransferHandler {
-    private final Graph graph;
+    private final GraphController graphController;
     private final JPanel panel;
 
-    public ValueImportTransferHandler(Graph graph, JPanel panel) {
-        this.graph = graph;
+    public ValueImportTransferHandler(GraphController graphController, JPanel panel) {
+        this.graphController = graphController;
         this.panel = panel;
     }
 
@@ -31,7 +32,7 @@ public class ValueImportTransferHandler extends TransferHandler {
             Point dropPoint = support.getDropLocation().getDropPoint();
             String nodeName = JOptionPane.showInputDialog("Enter node name:");
             if (nodeName != null) {
-                graph.addNode(dropPoint.x, dropPoint.y, nodeName);
+                graphController.addNode(dropPoint.x, dropPoint.y, nodeName);
                 panel.repaint();
                 return true;
             }

@@ -21,97 +21,97 @@ public class GraphVisualizer extends JFrame {
     private boolean isWeighted = false; // Default to unweighted
 
     public GraphVisualizer() {
-        graph = new Graph();
-        graphPanel = new GraphPanel(graph);
-        graphController = new GraphController(graph, graphPanel);
+    graph = new Graph();
+    graphPanel = new GraphPanel(); // Initialize graphPanel without graphController
+    graphController = new GraphController(graph, graphPanel); // Initialize graphController
+    graphPanel.setGraphController(graphController); // Set the graphController in graphPanel
 
-        setTitle("Graphen-Visualisierer");
-        setSize(800, 600);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLayout(new BorderLayout());
+    setTitle("Graphen-Visualisierer");
+    setSize(800, 600);
+    setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    setLayout(new BorderLayout());
 
-        // Create the menu bar
-        JMenuBar menuBar = new JMenuBar();
+    // Create the menu bar
+    JMenuBar menuBar = new JMenuBar();
 
-        // Create the File menu
-        JMenu fileMenu = new JMenu("File");
-        JMenuItem saveMenuItem = new JMenuItem("Save");
-        JMenuItem loadMenuItem = new JMenuItem("Load");
-        JMenuItem resetMenuItem = new JMenuItem("Reset");
+    // Create the File menu
+    JMenu fileMenu = new JMenu("File");
+    JMenuItem saveMenuItem = new JMenuItem("Save");
+    JMenuItem loadMenuItem = new JMenuItem("Load");
+    JMenuItem resetMenuItem = new JMenuItem("Reset");
 
-        saveMenuItem.addActionListener(e -> saveGraph());
-        loadMenuItem.addActionListener(e -> loadGraph());
-        resetMenuItem.addActionListener(e -> graphController.resetGraph());
+    saveMenuItem.addActionListener(e -> saveGraph());
+    loadMenuItem.addActionListener(e -> loadGraph());
+    resetMenuItem.addActionListener(e -> graphController.resetGraph());
 
-        fileMenu.add(saveMenuItem);
-        fileMenu.add(loadMenuItem);
-        fileMenu.add(resetMenuItem);
+    fileMenu.add(saveMenuItem);
+    fileMenu.add(loadMenuItem);
+    fileMenu.add(resetMenuItem);
 
-        menuBar.add(fileMenu);
+    menuBar.add(fileMenu);
 
-        // Set the menu bar
-        setJMenuBar(menuBar);
+    // Set the menu bar
+    setJMenuBar(menuBar);
 
-        // Toolbar for actions (e.g., adding nodes/edges)
-        JPanel controlPanel = new JPanel();
-        controlPanel.setBackground(Color.LIGHT_GRAY); // Set background color
-        JButton addEdgeButton = new JButton("Kante Hinzufügen");
-        JToggleButton toggleDirectedButton = new JToggleButton("Gerichtet");
-        JCheckBox weightedCheckBox = new JCheckBox("Gewichtet");
+    // Toolbar for actions (e.g., adding nodes/edges)
+    JPanel controlPanel = new JPanel();
+    controlPanel.setBackground(Color.LIGHT_GRAY); // Set background color
+    JButton addEdgeButton = new JButton("Kante Hinzufügen");
+    JToggleButton toggleDirectedButton = new JToggleButton("Gerichtet");
+    JCheckBox weightedCheckBox = new JCheckBox("Gewichtet");
+    JButton undoButton = new JButton("Rückgängig");
 
-        addEdgeButton.addActionListener(e -> graphPanel.createEdge(isDirected, isWeighted));
+    addEdgeButton.addActionListener(e -> graphPanel.createEdge(isDirected, isWeighted));
+    undoButton.addActionListener(e -> graphController.undo());
 
-        toggleDirectedButton.addItemListener(e -> {
-            isDirected = toggleDirectedButton.isSelected();
-            toggleDirectedButton.setText(isDirected ? "Gerichtet" : "Ungerichtet");
-        });
-
-        weightedCheckBox.addItemListener(e -> isWeighted = weightedCheckBox.isSelected());
-
-        // Ensure the initial state is set correctly
-        toggleDirectedButton.setSelected(isDirected);
+    toggleDirectedButton.addItemListener(e -> {
+        isDirected = toggleDirectedButton.isSelected();
         toggleDirectedButton.setText(isDirected ? "Gerichtet" : "Ungerichtet");
+    });
 
-        controlPanel.add(addEdgeButton);
-        controlPanel.add(toggleDirectedButton);
-        controlPanel.add(weightedCheckBox);
+    weightedCheckBox.addItemListener(e -> isWeighted = weightedCheckBox.isSelected());
 
-        add(controlPanel, BorderLayout.NORTH);
+    // Ensure the initial state is set correctly
+    toggleDirectedButton.setSelected(isDirected);
+    toggleDirectedButton.setText(isDirected ? "Gerichtet" : "Ungerichtet");
 
-        // Toolbar on the right for dragging nodes
-        JPanel toolbar = new JPanel();
-        toolbar.setBackground(Color.LIGHT_GRAY); // Set background color
-        toolbar.setLayout(new BoxLayout(toolbar, BoxLayout.Y_AXIS));
-        JButton nodeButton = new JButton("Node");
-        nodeButton.setTransferHandler(new ValueExportTransferHandler(new Node(0, 0, "Unnamed")));
-        nodeButton.addMouseMotionListener(new MouseAdapter() {
-            @Override
-            public void mouseDragged(MouseEvent e) {
-                JComponent c = (JComponent) e.getSource();
-                TransferHandler handler = c.getTransferHandler();
-                handler.exportAsDrag(c, e, TransferHandler.COPY);
-            }
-        });
-        toolbar.add(nodeButton);
-        add(toolbar, BorderLayout.EAST);
+    controlPanel.add(addEdgeButton);
+    controlPanel.add(toggleDirectedButton);
+    controlPanel.add(weightedCheckBox);
+    controlPanel.add(undoButton);
 
-        add(graphPanel, BorderLayout.CENTER);
-    }
+    add(controlPanel, BorderLayout.NORTH);
+
+    // Toolbar on the right for dragging nodes
+    JPanel toolbar = new JPanel();
+    toolbar.setBackground(Color.LIGHT_GRAY); // Set background color
+    toolbar.setLayout(new BoxLayout(toolbar, BoxLayout.Y_AXIS));
+    JButton nodeButton = new JButton("Node");
+    nodeButton.setTransferHandler(new ValueExportTransferHandler(new Node(0, 0, "Unnamed")));
+    nodeButton.addMouseMotionListener(new MouseAdapter() {
+        @Override
+        public void mouseDragged(MouseEvent e) {
+            JComponent c = (JComponent) e.getSource();
+            TransferHandler handler = c.getTransferHandler();
+            handler.exportAsDrag(c, e, TransferHandler.COPY);
+        }
+    });
+    toolbar.add(nodeButton);
+    add(toolbar, BorderLayout.EAST);
+
+    add(graphPanel, BorderLayout.CENTER);
+}
 
     private void saveGraph() {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setFileFilter(new FileNameExtensionFilter("Graph files", "graph"));
-        int option = fileChooser.showSaveDialog(this);
-        if (option == JFileChooser.APPROVE_OPTION) {
+        int returnValue = fileChooser.showSaveDialog(this);
+        if (returnValue == JFileChooser.APPROVE_OPTION) {
             File file = fileChooser.getSelectedFile();
-            if (!file.getName().endsWith(".graph")) {
-                file = new File(file.getAbsolutePath() + ".graph");
-            }
             try {
                 graphController.saveGraph(file);
-                JOptionPane.showMessageDialog(this, "Graph saved successfully.");
-            } catch (IOException ex) {
-                JOptionPane.showMessageDialog(this, "Error saving graph: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
     }
@@ -119,14 +119,13 @@ public class GraphVisualizer extends JFrame {
     private void loadGraph() {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setFileFilter(new FileNameExtensionFilter("Graph files", "graph"));
-        int option = fileChooser.showOpenDialog(this);
-        if (option == JFileChooser.APPROVE_OPTION) {
+        int returnValue = fileChooser.showOpenDialog(this);
+        if (returnValue == JFileChooser.APPROVE_OPTION) {
             File file = fileChooser.getSelectedFile();
             try {
                 graphController.loadGraph(file);
-                JOptionPane.showMessageDialog(this, "Graph loaded successfully.");
-            } catch (IOException ex) {
-                JOptionPane.showMessageDialog(this, "Error loading graph: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
     }
