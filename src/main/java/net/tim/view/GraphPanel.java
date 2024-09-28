@@ -94,7 +94,11 @@ public class GraphPanel extends JPanel {
         if (SwingUtilities.isLeftMouseButton(e)) {
             Node clickedNode = getNodeAt(e.getX(), e.getY());
             if (clickedNode != null) {
-                if (firstSelectedNode == null) {
+                if (clickedNode.equals(firstSelectedNode)) {
+                    firstSelectedNode = null;
+                } else if (clickedNode.equals(secondSelectedNode)) {
+                    secondSelectedNode = null;
+                } else if (firstSelectedNode == null) {
                     firstSelectedNode = clickedNode;
                 } else if (secondSelectedNode == null) {
                     secondSelectedNode = clickedNode;
@@ -143,6 +147,10 @@ public class GraphPanel extends JPanel {
     private void deleteNode() {
         if (clickedNode != null) {
             graphController.removeNode(clickedNode);
+            if (clickedNode.equals(firstSelectedNode) || clickedNode.equals(secondSelectedNode)) {
+                firstSelectedNode = null;
+                secondSelectedNode = null;
+            }
             repaint();
         }
     }

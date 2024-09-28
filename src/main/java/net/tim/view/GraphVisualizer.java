@@ -1,7 +1,6 @@
 package net.tim.view;
 
 import net.tim.controller.GraphController;
-import net.tim.model.Edge;
 import net.tim.model.Graph;
 import net.tim.model.Node;
 import net.tim.transfer.ValueExportTransferHandler;
@@ -13,7 +12,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
-import java.util.Random;
 
 public class GraphVisualizer extends JFrame {
     private Graph graph;
