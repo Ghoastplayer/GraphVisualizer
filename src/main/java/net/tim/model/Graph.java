@@ -100,6 +100,10 @@ public class Graph {
             }
         }
     }
+
+    public void addEdge(Edge edge) {
+        edges.add(edge);
+    }
 }
 
 
