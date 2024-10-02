@@ -381,4 +381,35 @@ public class GraphController {
         }
         graphPanel.repaint();
     }
+
+    public void colorGraph() {
+        Map<Node, Color> nodeColors = new HashMap<>();
+        List<Color> colors = Arrays.asList(Color.RED, Color.BLUE, Color.GREEN, Color.YELLOW, Color.ORANGE, Color.PINK, Color.CYAN);
+
+        for (Node node : graph.getNodes()) {
+            Set<Color> usedColors = new HashSet<>();
+            for (Edge edge : graph.getEdges()) {
+                if (edge.from.equals(node) && nodeColors.containsKey(edge.to)) {
+                    usedColors.add(nodeColors.get(edge.to));
+                } else if (edge.to.equals(node) && nodeColors.containsKey(edge.from)) {
+                    usedColors.add(nodeColors.get(edge.from));
+                }
+            }
+            for (Color color : colors) {
+                if (!usedColors.contains(color)) {
+                    nodeColors.put(node, color);
+                    break;
+                }
+            }
+        }
+
+        markColoredNodes(nodeColors);
+    }
+
+    private void markColoredNodes(Map<Node, Color> nodeColors) {
+    for (Map.Entry<Node, Color> entry : nodeColors.entrySet()) {
+        entry.getKey().setColor(entry.getValue());
+    }
+    graphPanel.repaint();
+}
 }
