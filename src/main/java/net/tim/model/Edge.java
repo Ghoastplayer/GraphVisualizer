@@ -23,4 +23,8 @@ public class Edge {
         this.weight = weight;
         this.color = Color.BLACK; // Default color
     }
+
+    public void setColor(Color color) {
+        this.color = color;
+    }
 }
