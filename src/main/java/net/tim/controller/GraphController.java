@@ -266,4 +266,119 @@ public class GraphController {
         System.out.println("Action created: " + actionType);
         System.out.println("Stack size: " + actionStack.size());
     }
+
+    private boolean isHamiltonianCircuit() {
+        List<Node> path = new ArrayList<>();
+        return findHamiltonianCircuit(graph.getNodes().get(0), path, new HashSet<>());
+    }
+
+    private boolean isHamiltonianPath() {
+        for (Node startNode : graph.getNodes()) {
+            List<Node> path = new ArrayList<>();
+            if (findHamiltonianPath(startNode, path, new HashSet<>())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean findHamiltonianCircuit(Node current, List<Node> path, Set<Node> visited) {
+        path.add(current);
+        visited.add(current);
+
+        // Check if all nodes are visited and there's an edge back to the start node
+        if (path.size() == graph.getNodes().size()) {
+            return graph.getEdges().stream()
+                    .anyMatch(e -> e.from.equals(current) && e.to.equals(path.get(0)));
+        }
+
+        // Only consider edges connected to the current node
+        for (Edge edge : graph.getEdges()) {
+            if (edge.from.equals(current) || edge.to.equals(current)) {
+                Node next = edge.from.equals(current) ? edge.to : edge.from;
+                if (!visited.contains(next)) {
+                    if (findHamiltonianCircuit(next, path, visited)) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        // Backtrack if no Hamiltonian Circuit is found
+        path.remove(path.size() - 1);
+        visited.remove(current);
+        return false;
+    }
+
+
+    private boolean findHamiltonianPath(Node current, List<Node> path, Set<Node> visited) {
+        path.add(current);
+        visited.add(current);
+
+        if (path.size() == graph.getNodes().size()) {
+            return true;
+        }
+
+        for (Edge edge : graph.getEdges()) {
+            Node next = edge.from.equals(current) ? edge.to : edge.from;
+            if (!visited.contains(next)) {
+                if (findHamiltonianPath(next, path, visited)) {
+                    return true;
+                }
+            }
+        }
+
+        path.remove(path.size() - 1);
+        visited.remove(current);
+        return false;
+    }
+
+    public void markHamiltonian() {
+        if (isHamiltonianCircuit()) {
+            System.out.println("Hamiltonian circuit found");
+            markHamiltonianCircuit();
+        } else if (isHamiltonianPath()) {
+            System.out.println("Hamiltonian path found");
+            markHamiltonianPath();
+        }
+    }
+
+    private void markHamiltonianCircuit() {
+        List<Node> path = new ArrayList<>();
+        if (findHamiltonianCircuit(graph.getNodes().get(0), path, new HashSet<>())) {
+            markPath(path, Color.GREEN);
+            // Add the edge that closes the circuit
+            Node first = path.get(0);
+            Node last = path.get(path.size() - 1);
+            Edge closingEdge = graph.getEdges().stream()
+                    .filter(e -> (e.from.equals(first) && e.to.equals(last)) || (e.from.equals(last) && e.to.equals(first)))
+                    .findFirst().orElse(null);
+            if (closingEdge != null) {
+                closingEdge.color = Color.GREEN;
+            }
+        }
+        graphPanel.repaint();
+    }
+
+    private void markHamiltonianPath() {
+        for (Node startNode : graph.getNodes()) {
+            List<Node> path = new ArrayList<>();
+            if (findHamiltonianPath(startNode, path, new HashSet<>())) {
+                markPath(path, Color.YELLOW);
+                break;
+            }
+        }
+    }
+
+    private void markPath(List<Node> path, Color color) {
+        for (int i = 0; i < path.size() - 1; i++) {
+            Node from = path.get(i);
+            Node to = path.get(i + 1);
+            Edge edge = graph.getEdges().stream().filter(e -> (e.from.equals(from) && e.to.equals(to)) || (e.from.equals(to) && e.to.equals(from))).findFirst().orElse(null);
+            if (edge != null) {
+                edge.color = color;
+            }
+        }
+        graphPanel.repaint();
+    }
 }

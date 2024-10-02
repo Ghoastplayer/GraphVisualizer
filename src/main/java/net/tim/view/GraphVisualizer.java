@@ -40,16 +40,19 @@ public class GraphVisualizer extends JFrame {
         JMenuItem loadMenuItem = new JMenuItem("Load");
         JMenuItem resetMenuItem = new JMenuItem("Reset");
         JMenuItem markEulerianMenuItem = new JMenuItem("Mark Eulerian");
+        JMenuItem markHamiltonianMenuItem = new JMenuItem("Mark Hamiltonian");
 
         saveMenuItem.addActionListener(e -> saveGraph());
         loadMenuItem.addActionListener(e -> loadGraph());
         resetMenuItem.addActionListener(e -> graphController.resetGraph());
         markEulerianMenuItem.addActionListener(e -> graphController.markEulerian());
+        markHamiltonianMenuItem.addActionListener(e -> graphController.markHamiltonian());
 
         fileMenu.add(saveMenuItem);
         fileMenu.add(loadMenuItem);
         fileMenu.add(resetMenuItem);
         fileMenu.add(markEulerianMenuItem);
+        fileMenu.add(markHamiltonianMenuItem);
 
         menuBar.add(fileMenu);
 
