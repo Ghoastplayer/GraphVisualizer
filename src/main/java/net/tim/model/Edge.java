@@ -21,7 +21,7 @@ public class Edge {
         this.to = to;
         this.isDirected = isDirected;
         this.weight = weight;
-        this.color = Color.BLACK; // Default color
+        this.color = Color.BLACK;
     }
 
     public void setColor(Color color) {

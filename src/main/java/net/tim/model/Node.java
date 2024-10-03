@@ -11,7 +11,7 @@ public class Node {
         this.x = x;
         this.y = y;
         this.name = name;
-        this.color = Color.BLACK; // Default color
+        this.color = Color.BLACK;
     }
 
     public void setColor(Color value) {

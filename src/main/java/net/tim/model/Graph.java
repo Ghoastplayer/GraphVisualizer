@@ -68,47 +68,44 @@ public class Graph {
     }
 
     public void saveToFile(File file) throws IOException {
-    try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
-        for (Node node : nodes) {
-            writer.write("NODE " + node.x + " " + node.y + " " + node.name + " " + node.color.getRGB());
-            writer.newLine();
-        }
-        for (Edge edge : edges) {
-            writer.write("EDGE " + edge.from.name + " " + edge.to.name + " " + edge.weight + " " + edge.isDirected + " " + edge.color.getRGB());
-            writer.newLine();
-        }
-    }
-}
-
-public void loadFromFile(File file) throws IOException {
-    clear();
-    Map<String, Node> nodeMap = new HashMap<>();
-    try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-        String line;
-        while ((line = reader.readLine()) != null) {
-            String[] parts = line.split(" ");
-            if (parts[0].equals("NODE")) {
-                Node node = new Node(Integer.parseInt(parts[1]), Integer.parseInt(parts[2]), parts[3]);
-                node.setColor(new Color(Integer.parseInt(parts[4])));
-                nodes.add(node);
-                nodeMap.put(node.name, node);
-            } else if (parts[0].equals("EDGE")) {
-                Node from = nodeMap.get(parts[1]);
-                Node to = nodeMap.get(parts[2]);
-                int weight = Integer.parseInt(parts[3]);
-                boolean isDirected = Boolean.parseBoolean(parts[4]);
-                Edge edge = new Edge(from, to, isDirected, weight);
-                edge.setColor(new Color(Integer.parseInt(parts[5])));
-                edges.add(edge);
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+            for (Node node : nodes) {
+                writer.write("NODE " + node.x + " " + node.y + " " + node.name + " " + node.color.getRGB());
+                writer.newLine();
+            }
+            for (Edge edge : edges) {
+                writer.write("EDGE " + edge.from.name + " " + edge.to.name + " " + edge.weight + " " + edge.isDirected + " " + edge.color.getRGB());
+                writer.newLine();
             }
         }
     }
-}
+
+    public void loadFromFile(File file) throws IOException {
+        clear();
+        Map<String, Node> nodeMap = new HashMap<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(" ");
+                if (parts[0].equals("NODE")) {
+                    Node node = new Node(Integer.parseInt(parts[1]), Integer.parseInt(parts[2]), parts[3]);
+                    node.setColor(new Color(Integer.parseInt(parts[4])));
+                    nodes.add(node);
+                    nodeMap.put(node.name, node);
+                } else if (parts[0].equals("EDGE")) {
+                    Node from = nodeMap.get(parts[1]);
+                    Node to = nodeMap.get(parts[2]);
+                    int weight = Integer.parseInt(parts[3]);
+                    boolean isDirected = Boolean.parseBoolean(parts[4]);
+                    Edge edge = new Edge(from, to, isDirected, weight);
+                    edge.setColor(new Color(Integer.parseInt(parts[5])));
+                    edges.add(edge);
+                }
+            }
+        }
+    }
 
     public void addEdge(Edge edge) {
         edges.add(edge);
     }
 }
-
-
-

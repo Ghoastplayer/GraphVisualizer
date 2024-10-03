@@ -1,7 +1,6 @@
 package net.tim.transfer;
 
 import net.tim.controller.GraphController;
-import net.tim.model.Graph;
 import net.tim.model.Node;
 
 import javax.swing.*;

@@ -2,7 +2,6 @@ package net.tim.view;
 
 import net.tim.controller.GraphController;
 import net.tim.model.Edge;
-import net.tim.model.Graph;
 import net.tim.model.Node;
 import net.tim.transfer.ValueImportTransferHandler;
 
@@ -189,7 +188,7 @@ public class GraphPanel extends JPanel {
                     }
                 }
             }
-            graphController.addEdge(firstSelectedNode, secondSelectedNode, isDirected, isWeighted, weight);
+            graphController.addEdge(firstSelectedNode, secondSelectedNode, isDirected, weight);
             firstSelectedNode = null;
             secondSelectedNode = null;
         } else {

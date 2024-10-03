@@ -62,7 +62,7 @@ public class GraphController {
         graphPanel.repaint();
     }
 
-    public void addEdge(Node from, Node to, boolean isDirected, boolean isWeighted, int weight) {
+    public void addEdge(Node from, Node to, boolean isDirected, int weight) {
         Edge edge = new Edge(from, to, isDirected, weight);
         graph.addEdge(edge.from, edge.to);
         actionStack.push(new Action(Action.ActionType.ADD_EDGE, null, edge, null, null));
@@ -95,19 +95,19 @@ public class GraphController {
     public void undo() {
         if (!actionStack.isEmpty()) {
             Action action = actionStack.pop();
-            switch (action.getType()) {
-                case ADD_NODE -> graph.removeNode(action.getNode());
-                case REMOVE_NODE -> graph.addNode(action.getNode().x, action.getNode().y, action.getNode().name);
-                case ADD_EDGE -> graph.removeEdge(action.getEdge());
-                case REMOVE_EDGE -> graph.addEdge(action.getEdge().from, action.getEdge().to);
-                case SET_NODE_COLOR -> action.getNode().color = (Color) action.getOldValue();
-                case SET_EDGE_COLOR -> action.getEdge().color = (Color) action.getOldValue();
-                case SET_EDGE_WEIGHT -> action.getEdge().weight = (int) action.getOldValue();
-                case RENAME_NODE -> action.getNode().name = (String) action.getOldValue();
+            switch (action.type()) {
+                case ADD_NODE -> graph.removeNode(action.node());
+                case REMOVE_NODE -> graph.addNode(action.node().x, action.node().y, action.node().name);
+                case ADD_EDGE -> graph.removeEdge(action.edge());
+                case REMOVE_EDGE -> graph.addEdge(action.edge().from, action.edge().to);
+                case SET_NODE_COLOR -> action.node().color = (Color) action.oldValue();
+                case SET_EDGE_COLOR -> action.edge().color = (Color) action.oldValue();
+                case SET_EDGE_WEIGHT -> action.edge().weight = (int) action.oldValue();
+                case RENAME_NODE -> action.node().name = (String) action.oldValue();
                 case MOVE_NODE -> {
-                    Point oldPosition = (Point) action.getOldValue();
-                    action.getNode().x = oldPosition.x;
-                    action.getNode().y = oldPosition.y;
+                    Point oldPosition = (Point) action.oldValue();
+                    action.node().x = oldPosition.x;
+                    action.node().y = oldPosition.y;
                 }
             }
             graphPanel.repaint();
@@ -128,6 +128,12 @@ public class GraphController {
         graphPanel.repaint();
     }
 
+    public void resetColors() {
+        graph.getNodes().forEach(node -> node.color = Color.BLACK);
+        graph.getEdges().forEach(edge -> edge.color = Color.BLACK);
+        graphPanel.repaint();
+    }
+
     public List<Node> getNodes() {
         return graph.getNodes();
     }
@@ -145,19 +151,19 @@ public class GraphController {
     }
 
     private boolean isEulerianCircuit() {
-        if (!isConnected()) return false;
+        if (isConnected()) return false;
         return graph.getNodes().stream().allMatch(node -> graph.getEdges().stream().filter(e -> e.from.equals(node) || e.to.equals(node)).count() % 2 == 0);
     }
 
     private boolean isEulerianPath() {
-        if (!isConnected()) return false;
+        if (isConnected()) return false;
         return graph.getNodes().stream().filter(node -> graph.getEdges().stream().filter(e -> e.from.equals(node) || e.to.equals(node)).count() % 2 != 0).count() == 2;
     }
 
     private boolean isConnected() {
         Set<Node> visited = new HashSet<>();
-        dfs(graph.getNodes().get(0), visited);
-        return graph.getNodes().stream().allMatch(node -> graph.getEdges().stream().anyMatch(e -> e.from.equals(node) || e.to.equals(node)) ? visited.contains(node) : true);
+        dfs(graph.getNodes().getFirst(), visited);
+        return !graph.getNodes().stream().allMatch(node -> graph.getEdges().stream().noneMatch(e -> e.from.equals(node) || e.to.equals(node)) || visited.contains(node));
     }
 
     private void dfs(Node node, Set<Node> visited) {
@@ -172,7 +178,7 @@ public class GraphController {
         Graph graphCopy = copyGraph(graph);
         Stack<Node> stack = new Stack<>();
         List<Edge> circuit = new ArrayList<>();
-        Node current = graphCopy.getNodes().get(0);
+        Node current = graphCopy.getNodes().getFirst();
         stack.push(current);
 
         while (!stack.isEmpty()) {
@@ -209,14 +215,14 @@ public class GraphController {
                     nodeEdgesMap.computeIfAbsent(edge.to, k -> new ArrayList<>()).add(edge);
                 });
 
-                Node current = graphCopy.getNodes().stream().filter(node -> nodeEdgesMap.getOrDefault(node, Collections.emptyList()).size() % 2 != 0).findFirst().orElse(graphCopy.getNodes().get(0));
+                Node current = graphCopy.getNodes().stream().filter(node -> nodeEdgesMap.getOrDefault(node, Collections.emptyList()).size() % 2 != 0).findFirst().orElse(graphCopy.getNodes().getFirst());
 
                 while (!nodeEdgesMap.getOrDefault(current, Collections.emptyList()).isEmpty()) {
                     List<Edge> edges = nodeEdgesMap.get(current);
-                    Edge edge = edges.get(0);
+                    Edge edge = edges.getFirst();
                     Node next = edge.from.equals(current) ? edge.to : edge.from;
 
-                    if (!isBridge(graphCopy, current, edge)) {
+                    if (!isBridge(graphCopy, edge)) {
                         path.add(edge);
                         edges.remove(edge);
                         nodeEdgesMap.get(next).remove(edge);
@@ -255,9 +261,10 @@ public class GraphController {
         return graph.getEdges().stream().filter(e -> e.from.name.equals(edge.from.name) && e.to.name.equals(edge.to.name) && e.isDirected == edge.isDirected && e.weight == edge.weight).findFirst().orElse(null);
     }
 
-    private boolean isBridge(Graph graphCopy, Node node, Edge edge) {
+    // Check if removing edge makes graph disconnected
+    private boolean isBridge(Graph graphCopy, Edge edge) {
         graphCopy.removeEdge(edge);
-        boolean isBridge = !isConnected();
+        boolean isBridge = isConnected();
         graphCopy.addEdge(edge.from, edge.to);
         return isBridge;
     }
@@ -269,7 +276,7 @@ public class GraphController {
 
     private boolean isHamiltonianCircuit() {
         List<Node> path = new ArrayList<>();
-        return findHamiltonianCircuit(graph.getNodes().get(0), path, new HashSet<>());
+        return findHamiltonianCircuit(graph.getNodes().getFirst(), path, new HashSet<>());
     }
 
     private boolean isHamiltonianPath() {
@@ -286,13 +293,11 @@ public class GraphController {
         path.add(current);
         visited.add(current);
 
-        // Check if all nodes are visited and there's an edge back to the start node
         if (path.size() == graph.getNodes().size()) {
             return graph.getEdges().stream()
-                    .anyMatch(e -> e.from.equals(current) && e.to.equals(path.get(0)));
+                    .anyMatch(e -> e.from.equals(current) && e.to.equals(path.getFirst()));
         }
 
-        // Only consider edges connected to the current node
         for (Edge edge : graph.getEdges()) {
             if (edge.from.equals(current) || edge.to.equals(current)) {
                 Node next = edge.from.equals(current) ? edge.to : edge.from;
@@ -304,8 +309,7 @@ public class GraphController {
             }
         }
 
-        // Backtrack if no Hamiltonian Circuit is found
-        path.remove(path.size() - 1);
+        path.removeLast();
         visited.remove(current);
         return false;
     }
@@ -328,7 +332,7 @@ public class GraphController {
             }
         }
 
-        path.remove(path.size() - 1);
+        path.removeLast();
         visited.remove(current);
         return false;
     }
@@ -345,17 +349,13 @@ public class GraphController {
 
     private void markHamiltonianCircuit() {
         List<Node> path = new ArrayList<>();
-        if (findHamiltonianCircuit(graph.getNodes().get(0), path, new HashSet<>())) {
+        if (findHamiltonianCircuit(graph.getNodes().getFirst(), path, new HashSet<>())) {
             markPath(path, Color.GREEN);
-            // Add the edge that closes the circuit
-            Node first = path.get(0);
-            Node last = path.get(path.size() - 1);
-            Edge closingEdge = graph.getEdges().stream()
+            Node first = path.getFirst();
+            Node last = path.getLast();
+            graph.getEdges().stream()
                     .filter(e -> (e.from.equals(first) && e.to.equals(last)) || (e.from.equals(last) && e.to.equals(first)))
-                    .findFirst().orElse(null);
-            if (closingEdge != null) {
-                closingEdge.color = Color.GREEN;
-            }
+                    .findFirst().ifPresent(closingEdge -> closingEdge.color = Color.GREEN);
         }
         graphPanel.repaint();
     }
@@ -374,10 +374,7 @@ public class GraphController {
         for (int i = 0; i < path.size() - 1; i++) {
             Node from = path.get(i);
             Node to = path.get(i + 1);
-            Edge edge = graph.getEdges().stream().filter(e -> (e.from.equals(from) && e.to.equals(to)) || (e.from.equals(to) && e.to.equals(from))).findFirst().orElse(null);
-            if (edge != null) {
-                edge.color = color;
-            }
+            graph.getEdges().stream().filter(e -> (e.from.equals(from) && e.to.equals(to)) || (e.from.equals(to) && e.to.equals(from))).findFirst().ifPresent(edge -> edge.color = color);
         }
         graphPanel.repaint();
     }

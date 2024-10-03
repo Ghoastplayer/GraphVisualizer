@@ -14,31 +14,31 @@ import java.io.File;
 import java.io.IOException;
 
 public class GraphVisualizer extends JFrame {
-    private Graph graph;
-    private GraphPanel graphPanel;
-    private GraphController graphController;
+    private final Graph graph;
+    private final GraphPanel graphPanel;
+    private final GraphController graphController;
     private boolean isDirected = false; // Default to undirected
     private boolean isWeighted = false; // Default to unweighted
 
     public GraphVisualizer() {
         graph = new Graph();
-        graphPanel = new GraphPanel(); // Initialize graphPanel without graphController
-        graphController = new GraphController(graph, graphPanel); // Initialize graphController
-        graphPanel.setGraphController(graphController); // Set the graphController in graphPanel
+        graphPanel = new GraphPanel();
+        graphController = new GraphController(graph, graphPanel);
+        graphPanel.setGraphController(graphController);
 
         setTitle("Graphen-Visualisierer");
         setSize(800, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
-        // Create the menu bar
         JMenuBar menuBar = new JMenuBar();
 
-        // Create the File menu
         JMenu fileMenu = new JMenu("File");
         JMenuItem saveMenuItem = new JMenuItem("Save");
         JMenuItem loadMenuItem = new JMenuItem("Load");
         JMenuItem resetMenuItem = new JMenuItem("Reset");
+
+        JMenu algorithmsMenu = new JMenu("Algorithms");
         JMenuItem markEulerianMenuItem = new JMenuItem("Mark Eulerian");
         JMenuItem markHamiltonianMenuItem = new JMenuItem("Mark Hamiltonian");
         JMenuItem colorGraphMenuItem = new JMenuItem("Color Graph");
@@ -54,18 +54,18 @@ public class GraphVisualizer extends JFrame {
         fileMenu.add(saveMenuItem);
         fileMenu.add(loadMenuItem);
         fileMenu.add(resetMenuItem);
-        fileMenu.add(markEulerianMenuItem);
-        fileMenu.add(markHamiltonianMenuItem);
-        fileMenu.add(colorGraphMenuItem);
+        algorithmsMenu.add(markEulerianMenuItem);
+        algorithmsMenu.add(markHamiltonianMenuItem);
+        algorithmsMenu.add(colorGraphMenuItem);
 
         menuBar.add(fileMenu);
+        menuBar.add(algorithmsMenu);
 
-        // Set the menu bar
         setJMenuBar(menuBar);
 
-        // Toolbar for actions (e.g., adding nodes/edges)
+        //Toolbar on the top
         JPanel controlPanel = new JPanel();
-        controlPanel.setBackground(Color.LIGHT_GRAY); // Set background color
+        controlPanel.setBackground(Color.LIGHT_GRAY);
         JButton addEdgeButton = new JButton("Kante Hinzufügen");
         JToggleButton toggleDirectedButton = new JToggleButton("Gerichtet");
         JCheckBox weightedCheckBox = new JCheckBox("Gewichtet");
@@ -81,7 +81,6 @@ public class GraphVisualizer extends JFrame {
 
         weightedCheckBox.addItemListener(e -> isWeighted = weightedCheckBox.isSelected());
 
-        // Ensure the initial state is set correctly
         toggleDirectedButton.setSelected(isDirected);
         toggleDirectedButton.setText(isDirected ? "Gerichtet" : "Ungerichtet");
 
@@ -92,9 +91,9 @@ public class GraphVisualizer extends JFrame {
 
         add(controlPanel, BorderLayout.NORTH);
 
-        // Toolbar on the right for dragging nodes
+        // Toolbar on the right
         JPanel toolbar = new JPanel();
-        toolbar.setBackground(Color.LIGHT_GRAY); // Set background color
+        toolbar.setBackground(Color.LIGHT_GRAY);
         toolbar.setLayout(new BoxLayout(toolbar, BoxLayout.Y_AXIS));
         JButton nodeButton = new JButton("Node");
         nodeButton.setTransferHandler(new ValueExportTransferHandler(new Node(0, 0, "Unnamed")));
