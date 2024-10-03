@@ -28,8 +28,9 @@ public class Graph {
         edges.add(new Edge(from, to));
     }
 
-    public void addDirectedEdge(Node from, Node to) {
-        edges.add(new Edge(from, to, true));
+    public void addEdge(Node from, Node to, boolean isDirected, int weight) {
+        Edge edge = new Edge(from, to, isDirected, weight);
+        edges.add(edge);
     }
 
     public void addWeightedEdge(Node from, Node to, int weight) {

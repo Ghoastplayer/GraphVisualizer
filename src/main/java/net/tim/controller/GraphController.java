@@ -63,12 +63,12 @@ public class GraphController {
     }
 
     public void addEdge(Node from, Node to, boolean isDirected, int weight) {
-        Edge edge = new Edge(from, to, isDirected, weight);
-        graph.addEdge(edge.from, edge.to);
-        actionStack.push(new Action(Action.ActionType.ADD_EDGE, null, edge, null, null));
-        logAction("ADD_EDGE");
-        graphPanel.repaint();
-    }
+    Edge edge = new Edge(from, to, isDirected, weight);
+    graph.addEdge(edge.from, edge.to, isDirected, weight);
+    actionStack.push(new Action(Action.ActionType.ADD_EDGE, null, edge, null, null));
+    logAction("ADD_EDGE");
+    graphPanel.repaint();
+}
 
     public void removeNode(Node node) {
         graph.removeNode(node);
