@@ -17,4 +17,10 @@ public class Node {
     public void setColor(Color value) {
         color = value;
     }
+
+    @Override
+    public String toString() {
+        return name;
+    }
+
 }

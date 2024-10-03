@@ -407,9 +407,9 @@ public class GraphController {
     }
 
     private void markColoredNodes(Map<Node, Color> nodeColors) {
-    for (Map.Entry<Node, Color> entry : nodeColors.entrySet()) {
-        entry.getKey().setColor(entry.getValue());
+        for (Map.Entry<Node, Color> entry : nodeColors.entrySet()) {
+            entry.getKey().setColor(entry.getValue());
+        }
+        graphPanel.repaint();
     }
-    graphPanel.repaint();
-}
 }
