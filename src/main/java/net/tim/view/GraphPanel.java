@@ -256,27 +256,26 @@ public class GraphPanel extends JPanel {
     private void drawArrow(Graphics g, int x1, int y1, int x2, int y2) {
         int dx = x2 - x1, dy = y2 - y1;
         double D = Math.sqrt(dx * dx + dy * dy);
-        double arrowLength = 20; // Length of the arrowhead
-        double arrowWidth = 7;   // Width of the arrowhead
+        double arrowLength = 20;
+        double arrowWidth = 7;
         double xm = D - arrowLength, xn = xm, ym = arrowWidth, yn = -arrowWidth, x;
         double sin = dy / D, cos = dx / D;
         double nodeRadius = 9;
-        // Adjust the arrow position to stop at the node's edge (considering node radius)
-        D -= nodeRadius; // Subtract node radius to stop the arrow before the node's boundary
+
+        D -= nodeRadius;
         x2 = (int) (x1 + D * cos);
         y2 = (int) (y1 + D * sin);
-        // Recalculate points for the arrowhead
         x = xm * cos - ym * sin + x1;
         ym = xm * sin + ym * cos + y1;
         xm = x;
         x = xn * cos - yn * sin + x1;
         yn = xn * sin + yn * cos + y1;
         xn = x;
+
         // Draw the arrowhead
         int[] xpoints = {x2, (int) xm, (int) xn};
         int[] ypoints = {y2, (int) ym, (int) yn};
         g.fillPolygon(xpoints, ypoints, 3);
-        // Draw the main line of the arrow
         g.drawLine(x1, y1, x2, y2);
     }
 
