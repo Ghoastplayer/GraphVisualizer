@@ -32,24 +32,19 @@ This project is a Graph Visualization Tool that allows users to create, edit, an
 
 ## Installation
 
-To build and run the project, you need to have Java and Maven installed. Follow these steps:
+### Requirements
 
-1. Clone the repository:
-    ```sh
-    git clone https://github.com/yourusername/graph-visualization-tool.git
-    ```
-2. Navigate to the project directory:
-    ```sh
-    cd graph-visualization-tool
-    ```
-3. Build the project using Maven:
-    ```sh
-    mvn clean install
-    ```
-4. Run the application:
-    ```sh
-    mvn exec:java -Dexec.mainClass="net.tim.Main"
-    ```
+- **Java JDK 21**: You can download the latest version of the Java SDK from the [Oracle website](https://www.oracle.com/java/technologies/downloads/#jdk21-windows).
+
+### Running the Tool
+
+1. Download the latest release of the tool from the [Releases](https://github.com/Ghoastplayer/GraphVisualizer/releases/tag/v1.0) page.
+2. Extract the contents of the ZIP file to a folder on your computer.
+3. Run the `GraphVisualizer.jar` file by double-clicking it or running the following command in the terminal:
+
+```bash
+java -jar GraphVisualizer.jar
+```
 
 ## License
 
